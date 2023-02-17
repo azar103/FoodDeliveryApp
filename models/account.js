@@ -6,7 +6,6 @@ const accountSchema = Schema({
     email: {
         type: String, 
         required: true,
-        unique: true
     },
     password: {
         type: String,
@@ -19,4 +18,4 @@ const accountSchema = Schema({
     }
 }, {timestamps: true});
 
-const account = mongoose.model('account', accountSchema);
+module.exports =  mongoose.model('account', accountSchema);

@@ -16,15 +16,19 @@ exports.register = asyncHandler(async(req, res) => {
       res.status(500);
       throw new Error('empty field(s)');
    }
-   let user = await Account.findOne({email});
-   if(user) {
+   //check if the current account of the user exists
+   let account = await Account.findOne({email});
+   if(account) {
         res.status(201);
         throw new Error('the user already exist')
    } 
+   //create the new account
    const hashPassword = await bcrypt.hash(password, 10);
-   const account = new Account({email, password: hashPassword, userRole:'ROLE_USER'});
+   account = new Account({email, password: hashPassword, userRole});
    await account.save(); 
-   user = new User({firstName, lastName, profileImg: path, });
+   //create the new user with the Id of his own account created
+   const user = new User({firstName, lastName, profileImg: path, accountId: account});
+   //generate the token of the user
    const payload = {
       _id: user.id
    }
@@ -35,21 +39,23 @@ exports.register = asyncHandler(async(req, res) => {
 
 exports.login = asyncHandler(async (req, res) => {
     const {email, password} = req.body;
-    let user = await User.findOne({email});
-    if(!user) {
+    //check if the account exists
+    let account = await Account.findOne({email});
+    if(!account) {
       res.status(500);
       throw new Error('bad credentials');
     }
-    const match = await bcrypt.compare(password, user.password);
+    //check if the password are matched
+    const match = await bcrypt.compare(password, account.password);
     if(!match) {
       res.status(500);
       throw new Error('bad credentials');
     }
+    let user = await User.findOne({accountId: account._id});
     const payload = {
       _id: user.id
    }
    const token = await generateToken(payload);
-   await user.save();
    res.status(200).send({message:'the user is logged with success',  user, token});
 });
 
