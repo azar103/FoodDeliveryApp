@@ -19,6 +19,22 @@ const userSchema = Schema({
     },
     profileImg: {
         type: String
+    },
+    cart : {
+        items: [
+            {
+                item: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'Item',
+                    required: true
+                },
+                quantity: {
+                    type: Number,
+                    required: true
+                }
+            }
+        ],
+     
     }
 }, {
     timestamps: true

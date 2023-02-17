@@ -12,5 +12,8 @@ router.post('/register',upload, userCtrl.register);
 
 router.get('/me', passport.authenticate('jwt', {session:false}), userCtrl.getCurrentUser);
 
+router.post('/addtocart',passport.authenticate('jwt', {session:false}),userCtrl.addItemToCart);
+
+router.delete('/deletefromcart/:_id', passport.authenticate('jwt', {session:false}),userCtrl.removItemsFromCart);
 module.exports = router;
 
