@@ -14,6 +14,9 @@ router.get('/me', passport.authenticate('jwt', {session:false}), userCtrl.getCur
 
 router.post('/addtocart',passport.authenticate('jwt', {session:false}),userCtrl.addItemToCart);
 
-router.delete('/deletefromcart/:_id', passport.authenticate('jwt', {session:false}),userCtrl.removItemsFromCart);
+router.delete('/deletefromcart/:_id', passport.authenticate('jwt', {session:false}),userCtrl.removeItemsFromCart);
+router.put('/cartItem/:_id', passport.authenticate('jwt', {session:false}),userCtrl.updateCartItems);
+router.get('/cartItems', passport.authenticate('jwt', {session:false}),userCtrl.getCartItems);
+
 module.exports = router;
 

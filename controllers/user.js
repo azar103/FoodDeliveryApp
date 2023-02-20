@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/user');
 const Account = require('../models/account');
 const Item = require('../models/item');
-
+const mongoose = require('mongoose');
 
 const generateToken  = async (payload) => {
    const token = await jwt.sign(payload,process.env.SECRET_KEY, {expiresIn:'30d'});
@@ -62,24 +62,56 @@ exports.login = asyncHandler(async (req, res) => {
 
 exports.addItemToCart = asyncHandler(async (req, res) => {
    const {quantity, itemId} = req.body;
-   const user = await User.findById(req.user._id);
-   user.cart.items.push({item:itemId, quantity});
-   await user.save();
-   res.status(200).send({message: 'a new item is added to your cart'})
+
+   const objectId = mongoose.Types.ObjectId(itemId); 
+   const user = await User.findOne({_id: req.user._id});
+   const itemWithProductIdString = objectId; // Votre id de type string
+   const id = mongoose.Types.ObjectId(itemWithProductIdString); // Convertit la chaîne en ObjectId
+
+   const foundItem =  user.cart.items.find((item) => item.item.equals(id));
+  if(!foundItem) {
+     user.cart.items.push({item:itemId, quantity});
+     res.status(200).send({message: 'a new item is added to your cart'});
+     user.save();
+  }else {
+     res.status(500);
+     throw new Error('the item exists');
+  }
 });
 
-exports.removItemsFromCart = asyncHandler(async (req, res) => {
+exports.removeItemsFromCart = asyncHandler(async (req, res) => {
    const user = await User.findById(req.user._id);
-   console.log(user);
    const {_id} = req.params;
    const index = user.cart.items.indexOf(_id);
-   console.log(user);
    user.cart.items.splice(index, 1);
    await user.save();
    res.status(200).send({message: 'the item is deleted from your cart'})
 });
 
-exports.getCartItems = asyncHandler(async (req, res) => {});
+exports.updateCartItems = asyncHandler(async (req, res) => {
+   const user  = await User.findById(req.user._id);
+   const {quantity} = req.body;
+
+   const {_id} = req.params;
+   const index = user.cart.items.indexOf(_id);
+   const itemWithProductIdString = req.params._id; // Votre id de type string
+   const id = mongoose.Types.ObjectId(itemWithProductIdString); 
+   const itemFound = user.cart.items.find(item => item.item.equals(id));
+   if(!itemFound) {
+      res.status(400)
+      throw new Error('item not found')
+   }
+   const updatedItem = {_id: itemFound._id, item: itemFound.item, quantity}
+   user.cart.items.splice(index, 1, updatedItem);
+   
+   await user.save();
+   res.status(200).send({message:'item updated with success'});
+});
+
+exports.getCartItems = asyncHandler(async (req, res) => {
+const user = await User.findById(req.user._id);
+res.status(200).send(user.cart.items);
+});
 
 exports.getCurrentUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
