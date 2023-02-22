@@ -10,6 +10,13 @@ const generateToken  = async (payload) => {
    const token = await jwt.sign(payload,process.env.SECRET_KEY, {expiresIn:'30d'});
    return token;
 }
+
+const convertToObjectId = (itemId) => {
+   const objectId = mongoose.Types.ObjectId(itemId); 
+   const itemWithProductIdString = objectId; 
+   const id = mongoose.Types.ObjectId(itemWithProductIdString);
+   return id;
+}
 exports.register = asyncHandler(async(req, res) => {
    const {email, password, firstName, lastName, userRole} = req.body;
    const {path} = req.file;
@@ -63,11 +70,8 @@ exports.login = asyncHandler(async (req, res) => {
 exports.addItemToCart = asyncHandler(async (req, res) => {
    const {quantity, itemId} = req.body;
 
-   const objectId = mongoose.Types.ObjectId(itemId); 
    const user = await User.findOne({_id: req.user._id});
-   const itemWithProductIdString = objectId; // Votre id de type string
-   const id = mongoose.Types.ObjectId(itemWithProductIdString); // Convertit la chaîne en ObjectId
-
+   const id = convertToObjectId(itemId);
    const foundItem =  user.cart.items.find((item) => item.item.equals(id));
   if(!foundItem) {
      user.cart.items.push({item:itemId, quantity});
@@ -94,8 +98,7 @@ exports.updateCartItems = asyncHandler(async (req, res) => {
 
    const {_id} = req.params;
    const index = user.cart.items.indexOf(_id);
-   const itemWithProductIdString = req.params._id; // Votre id de type string
-   const id = mongoose.Types.ObjectId(itemWithProductIdString); 
+   const id = convertToObjectId(_id);
    const itemFound = user.cart.items.find(item => item.item.equals(id));
    if(!itemFound) {
       res.status(400)
