@@ -3,7 +3,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 const User = require('../models/user');
 const Account = require('../models/account');
-const Item = require('../models/item');
 const mongoose = require('mongoose');
 
 const generateToken  = async (payload) => {
